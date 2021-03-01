@@ -1,4 +1,4 @@
-# README.md
+# ubuntu-snort3
 Docker based build of Snort 3 from [source](https://github.com/snort3)  
 Creates two Docker images:
 
