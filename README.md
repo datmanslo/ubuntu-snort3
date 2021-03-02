@@ -7,6 +7,10 @@ Creates two Docker images:
 
 ## Usage
 
+### Build
+Requirements: Docker, curl  
+Run the [build.sh](build.sh) script to create the images. `./build.sh`
+
 ### Check Snort Version
 
 Command: `docker run --rm datmanslo/snort3`  
