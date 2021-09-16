@@ -18,17 +18,18 @@ Example output:
 
 ```bash
    ,,_     -*> Snort++ <*-
-  o"  )~   Version 3.1.1.0
+  o"  )~   Version 3.1.12.0
    ''''    By Martin Roesch & The Snort Team
            http://snort.org/contact#team
-           Copyright (C) 2014-2020 Cisco and/or its affiliates. All rights reserved.
+           Copyright (C) 2014-2021 Cisco and/or its affiliates. All rights reserved.
            Copyright (C) 1998-2013 Sourcefire, Inc., et al.
-           Using DAQ version 3.0.0
+           Using DAQ version 3.0.5
            Using LuaJIT version 2.1.0-beta3
            Using OpenSSL 1.1.1f  31 Mar 2020
            Using libpcap version 1.9.1 (with TPACKET_V3)
            Using PCRE version 8.39 2016-06-14
            Using ZLIB version 1.2.11
+           Using FlatBuffers 1.11.0
            Using Hyperscan version 5.2.1 2020-03-23
            Using LZMA version 5.2.4
 ```
