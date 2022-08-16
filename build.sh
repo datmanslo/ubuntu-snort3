@@ -1,5 +1,5 @@
 #!/bin/sh -eu
-REQUIRED="docker curl"
+REQUIRED="docker curl jq"
 
 echo "Checking prerequisites: Docker, Curl\n"
 
