@@ -23,7 +23,7 @@ ODP_URL=https://snort.org/downloads/openappid/$(curl --silent https://snort.org/
 SNORT_VERSION=$(curl https://api.github.com/repos/snort3/snort3/releases/latest -s | jq .tag_name -r)
 
 # Build an image for each stage
-IMAGE_NAME=datmanslo/ubuntu-snort3
+IMAGE_NAME=dylane/ubuntu-snort3
 
 echo "Starting the buildtime stage...\n"
 cat Dockerfile | \

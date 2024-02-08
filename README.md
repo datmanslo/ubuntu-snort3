@@ -6,7 +6,7 @@ Creates two Docker images:
 - Smaller runtime image: `datmanslo/ubuntu-snort3:latest<snort-version>`
 
 ## Usage
-
+-
 ### Build
 Requirements: Docker, curl  
 Run the [build.sh](build.sh) script to create the images. `./build.sh`

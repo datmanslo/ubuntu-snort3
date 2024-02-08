@@ -54,6 +54,8 @@ RUN \
         zlib1g-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+    RUN apt-get install -y libnuma1
+
 # OpenAppID version can change in the future (26425)
 ARG ODP_URL=https://snort.org/downloads/openappid/26425
 
