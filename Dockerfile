@@ -54,7 +54,13 @@ RUN \
         zlib1g-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-    RUN apt-get install -y libnuma1
+   # Existing Dockerfile content...
+
+# Add the new RUN command
+RUN apt-get update && apt-get install -y libnuma1 && \
+    ln -s /usr/lib/x86_64-linux-gnu/libnuma.so.1 /usr/lib/libnuma.so.1
+
+# Continue with the rest of the Dockerfile...
 
 # OpenAppID version can change in the future (26425)
 ARG ODP_URL=https://snort.org/downloads/openappid/26425
