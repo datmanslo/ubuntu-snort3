@@ -2,8 +2,8 @@
 Docker based build of Snort 3 from [source](https://github.com/snort3)  
 Creates two Docker images:
 
-- Larger buildtime image with source code (/tmp) and dev tools: `datmanslo/ubuntu-snort3-build:<snort-version>`
-- Smaller runtime image: `datmanslo/ubuntu-snort3:latest<snort-version>`
+- Larger buildtime image with source code (/tmp) and dev tools: `dylane/ubuntu-snort3-build:<snort-version>`
+- Smaller runtime image: `dylane/ubuntu-snort3:latest<snort-version>`
 
 ## Usage
 -
@@ -13,7 +13,7 @@ Run the [build.sh](build.sh) script to create the images. `./build.sh`
 
 ### Check Snort Version
 
-Command: `docker run --rm docker.io/datmanslo/ubuntu-snort3:3.1.39.0 -V`  
+Command: `docker run --rm docker.io/dylane/ubuntu-snort3-build:3.1.78.0 /usr/local/bin/snort -V`  
 Example output:
 
 ```bash
