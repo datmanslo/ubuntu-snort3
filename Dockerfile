@@ -1,5 +1,5 @@
 ARG BUILDER_BASE=ubuntu
-ARG BUILDER_TAG=22.04
+ARG BUILDER_TAG=24.04
 ARG RUNTIME_BASE=${BUILDER_BASE}
 ARG RUNTIME_TAG=${BUILDER_TAG}
 
@@ -55,11 +55,22 @@ RUN \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # OpenAppID version can change in the future (26425)
-ARG ODP_URL=https://snort.org/downloads/openappid/26425
+ARG ODP_URL=https://snort.org/downloads/openappid/33380
 
 # Set installation location
 ENV PREFIX_DIR=/usr/local
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
+ENV CC=/usr/bin/gcc
+ENV CXX=/usr/bin/g++
+
+# Build libml
+WORKDIR /tmp/libml_src
+RUN git clone https://github.com/snort3/libml.git \
+&& cd libml \
+&& CXX_FLAGS="-fno-rtti O3" CPFLAGS="-O3" CFLAGS="-O3" ./configure.sh --prefix=${PREFIX_DIR} \
+&& cd build \
+&& make -j$(nproc --ignore=1) install \
+&& ldconfig
 
 # Build libdaq
 WORKDIR /tmp/daq_src
@@ -81,7 +92,6 @@ RUN git clone https://github.com/snort3/snort3.git \
    --enable-luajit-static \
    --disable-gdb \
    --enable-shell \
-   --enable-tsc-clock \
    --enable-tsc-clock \
    --disable-static-daq \
    --disable-docs \
@@ -111,10 +121,12 @@ ENV PREFIX_DIR=/usr/local
 RUN apt-get update \
   && apt-get install -y \
      libdumbnet1 \
-     libflatbuffers1 \
+     libflatbuffers2 \
      libhwloc15 \
      libhyperscan5 \
      libmnl0 \
+     libnuma1 \
+     libpcre3 \
      libpcap0.8 \
      libsafec3 \
      libssl3 \
