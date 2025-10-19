@@ -48,7 +48,7 @@ docker run --rm ubuntu-snort3:latest --version
 
 **Check build version (when using SNORT_VERSION=latest):**
 ```bash
-docker run --rm ubuntu-snort3:latest cat /usr/local/etc/snort/version.txt
+docker run --rm --entrypoint cat ubuntu-snort3:latest /usr/local/etc/snort/version.txt
 ```
 
 **Example output:**

@@ -1,0 +1,113 @@
+name: Build and Publish Docker Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/build-and-publish.yml'
+  workflow_dispatch:
+    inputs:
+      snort_version:
+        description: 'Snort version to build (default: latest)'
+        required: false
+        default: 'latest'
+      odp_version:
+        description: 'OpenAppID version'
+        required: false
+        default: '33380'
+
+env:
+  REGISTRY_IMAGE: datmanslo/ubuntu-snort3
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set build arguments
+        id: build-args
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "SNORT_VERSION=${{ github.event.inputs.snort_version }}" >> $GITHUB_ENV
+            echo "ODP_VERSION=${{ github.event.inputs.odp_version }}" >> $GITHUB_ENV
+          else
+            echo "SNORT_VERSION=latest" >> $GITHUB_ENV
+            echo "ODP_VERSION=33380" >> $GITHUB_ENV
+          fi
+
+      - name: Build Docker image (to extract version)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ env.REGISTRY_IMAGE }}:temp
+          build-args: |
+            SNORT_VERSION=${{ env.SNORT_VERSION }}
+            ODP_VERSION=${{ env.ODP_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract Snort version from image
+        id: extract-version
+        run: |
+          VERSION=$(docker run --rm --entrypoint cat ${{ env.REGISTRY_IMAGE }}:temp /usr/local/etc/snort/version.txt)
+          echo "Extracted Snort version: $VERSION"
+          echo "SNORT_TAG=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=raw,value=${{ env.SNORT_TAG }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image with correct tags
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.version=${{ env.SNORT_TAG }}
+          build-args: |
+            SNORT_VERSION=${{ env.SNORT_TAG }}
+            ODP_VERSION=${{ env.ODP_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Create release summary
+        run: |
+          echo "## Docker Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ env.REGISTRY_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Snort Version:** \`${{ env.SNORT_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**ODP Version:** \`${{ env.ODP_VERSION }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Tags" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY_IMAGE }}:${{ env.SNORT_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY_IMAGE }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pull Command" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY_IMAGE }}:${{ env.SNORT_TAG }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
