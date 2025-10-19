@@ -1,0 +1,5 @@
+# Force LF line endings for Dockerfile to prevent CRLF issues with heredoc syntax
+Dockerfile text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

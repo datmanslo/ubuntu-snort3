@@ -1,20 +1,57 @@
 # ubuntu-snort3
-Docker based build of Snort 3 from [source](https://github.com/snort3)  
-Creates two Docker images:
+Docker-based build of Snort 3 from [source](https://github.com/snort3)
 
-- Larger buildtime image with source code (/tmp) and dev tools: `datmanslo/ubuntu-snort3-build:<snort-version>`
-- Smaller runtime image: `datmanslo/ubuntu-snort3:latest<snort-version>`
+Modern, self-contained Dockerfile using multi-stage build to create:
+- Intermediate builder stage with compilation tools and dependencies
+- Minimal runtime image with only Snort 3 and necessary runtime libraries
 
 ## Usage
 
 ### Build
-Requirements: Docker, curl  
-Run the [build.sh](build.sh) script to create the images. `./build.sh`
 
-### Check Snort Version
+**Requirements:** Docker with BuildKit support (Docker 18.09+)
 
-Command: `docker run --rm docker.io/datmanslo/ubuntu-snort3:3.1.39.0 -V`  
-Example output:
+**Basic build (latest versions):**
+```bash
+docker build -t ubuntu-snort3:latest .
+```
+
+**Build with specific versions:**
+```bash
+docker build \
+  --build-arg SNORT_VERSION=3.1.75.0 \
+  --build-arg ODP_VERSION=33380 \
+  -t ubuntu-snort3:3.1.75.0 .
+```
+
+**Build arguments:**
+- `SNORT_VERSION` - Snort3 version/tag (default: `latest`)
+  - When set to `latest`, the build automatically resolves to the most recent release tag
+  - The actual version is stored in `/usr/local/etc/snort/version.txt`
+- `LIBDAQ_VERSION` - libdaq version/tag (default: `main`)
+- `LIBML_VERSION` - libml version/tag (default: `main`)
+- `ODP_VERSION` - OpenAppID version number (default: `33380`)
+- `BUILDER_BASE` / `BUILDER_TAG` - Builder base image (default: `ubuntu:24.04`)
+- `RUNTIME_BASE` / `RUNTIME_TAG` - Runtime base image (default: `ubuntu:24.04`)
+
+**Access the builder stage (for debugging):**
+```bash
+docker build --target builder -t ubuntu-snort3-build:latest .
+```
+
+### Run Snort
+
+**Check version:**
+```bash
+docker run --rm ubuntu-snort3:latest --version
+```
+
+**Check build version (when using SNORT_VERSION=latest):**
+```bash
+docker run --rm ubuntu-snort3:latest cat /usr/local/etc/snort/version.txt
+```
+
+**Example output:**
 
 ```bash
    ,,_     -*> Snort++ <*-
@@ -33,11 +70,12 @@ Example output:
            Using LZMA version 5.2.5
 ```
 
-### Check Available Daq Modules
+**Check available DAQ modules:**
+```bash
+docker run --rm ubuntu-snort3:latest --daq-dir /usr/local/lib/daq --daq-list
+```
 
-Command: `docker run --rm docker.io/datmanslo/ubuntu-snort3:3.1.39.0 --daq-dir /usr/local/lib/daq --daq-list`  
-
-Example Output:
+**Example output:**
 
 ```bash
 Available DAQ modules:
@@ -76,6 +114,41 @@ trace(v1): inline unpriv wrapper
  Variables:
   file <arg> - Filename to write text traces to (default: inline-out.txt)
 ```
+
+## CI/CD
+
+This repository includes a GitHub Actions workflow that automatically builds and publishes Docker images to Docker Hub.
+
+### Automatic Builds
+
+The workflow triggers on:
+- **Push to `main` branch** - Automatically builds and publishes when Dockerfile changes
+- **Manual dispatch** - Allows building specific versions on-demand
+
+### Published Images
+
+Images are published to: **`datmanslo/ubuntu-snort3`**
+
+Tags:
+- `datmanslo/ubuntu-snort3:latest` - Latest Snort3 release
+- `datmanslo/ubuntu-snort3:<version>` - Specific Snort version (e.g., `3.9.6.0`)
+
+### Setup Requirements
+
+To enable automated publishing, configure these GitHub repository secrets:
+- `DOCKERHUB_USERNAME` - Your Docker Hub username
+- `DOCKERHUB_TOKEN` - Docker Hub access token ([create one here](https://hub.docker.com/settings/security))
+
+### Manual Workflow Dispatch
+
+You can manually trigger a build with custom parameters:
+
+1. Go to **Actions** tab in GitHub
+2. Select **Build and Publish Docker Image** workflow
+3. Click **Run workflow**
+4. Optionally specify:
+   - `snort_version` - Snort version to build (default: `latest`)
+   - `odp_version` - OpenAppID version (default: `33380`)
 
 ## Snort3 Usage and Documentation
 
